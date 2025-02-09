@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  serviceName: "minio"
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      volumes:
+        - name: data
+          emptyDir: {}
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - minio server /data --console-address :9090
+          ports:
+            - containerPort: 9090
+            - containerPort: 9000 
+          volumeMounts:
+            - name: miniodata
+              mountPath: /data  
+      volumes:
+      - name: miniodata
+        persistentVolumeClaim:
+          claimName: minio-pvc    
+      restartPolicy: Always
